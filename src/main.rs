@@ -174,7 +174,7 @@ fn generate_board(
     generated
 }
 
-fn main() -> anyhow::Result<()> {
+fn main() -> Result<(), GenerationError> {
     WORDS
         .set(include_str!("../words.txt").lines().collect())
         .unwrap();
