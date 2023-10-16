@@ -18,9 +18,10 @@ enum Direction {
 type Board = Vec<Vec<char>>;
 
 fn print_board(board: &Board) {
+    println!(" {}", "_".repeat(board[0].len() * 2));
     for row in board.iter() {
         println!(
-            "{}",
+            "|{}|",
             row.iter()
                 .map(|c| {
                     let mut s = c.to_string();
@@ -30,6 +31,7 @@ fn print_board(board: &Board) {
                 .collect::<String>()
         );
     }
+    println!("|{}|", "_".repeat(board[0].len() * 2));
 }
 
 #[derive(Error, Debug)]
