@@ -2,8 +2,8 @@ use once_cell::sync::OnceCell;
 use rand::{rngs::ThreadRng, Rng};
 use thiserror::Error;
 
-const COLS: usize = 20;
-const ROWS: usize = 20;
+const COLS: usize = 15;
+const ROWS: usize = 15;
 const DEFAULT_MAX_ITERATIONS: usize = 1_000_000;
 
 static WORDS: OnceCell<Vec<&'static str>> = OnceCell::new();
