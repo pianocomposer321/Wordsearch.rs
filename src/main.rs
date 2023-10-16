@@ -104,16 +104,16 @@ fn generate_board(
                         }
                     }
 
+                    let col_ind_for_first_letter = (col_ind + rand_col_offset) % first_invalid_col;
+
                     let mut board_copy = Vec::with_capacity(board.len());
                     for row in board.iter() {
                         board_copy.push(row.clone());
                     }
 
-                    let col_ind_for_first_letter = (col_ind + rand_col_offset) % first_invalid_col;
-                    let mut succesful = true;
-
                     let mut row_ind_for_current_letter = row_ind_for_first_letter;
                     let mut col_ind_for_current_letter = col_ind_for_first_letter;
+                    let mut succesful = true;
                     for letter in word.chars() {
                         if board[row_ind_for_current_letter][col_ind_for_current_letter] != ' ' && board[row_ind_for_current_letter][col_ind_for_current_letter] != letter {
                             succesful = false;
