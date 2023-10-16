@@ -1,5 +1,5 @@
 use once_cell::sync::OnceCell;
-use rand::{rngs::ThreadRng, Rng, seq::IteratorRandom};
+use rand::{rngs::ThreadRng, seq::IteratorRandom, Rng};
 use thiserror::Error;
 
 const COLS: usize = 15;
@@ -122,7 +122,10 @@ fn generate_board(
                     let mut col_ind_for_current_letter = col_ind_for_first_letter;
                     let mut succesful = true;
                     for letter in word.chars() {
-                        if board[row_ind_for_current_letter][col_ind_for_current_letter] != ' ' && board[row_ind_for_current_letter][col_ind_for_current_letter] != letter {
+                        if board[row_ind_for_current_letter][col_ind_for_current_letter] != ' '
+                            && board[row_ind_for_current_letter][col_ind_for_current_letter]
+                                != letter
+                        {
                             succesful = false;
                             break;
                         }
