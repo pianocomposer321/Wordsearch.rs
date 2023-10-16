@@ -76,19 +76,23 @@ fn generate_board(
             let dir_col_offset = (*direction as usize + 1) & 1;
             let dir_row_offset = (*direction as usize + 1) >> 1;
 
-            let mut first_invalid_row = rows_count;
+            let first_invalid_row;
             if dir_row_offset == 1 {
                 if word.len() > rows_count {
                     continue;
                 }
                 first_invalid_row = rows_count - word.len();
+            } else {
+                first_invalid_row = rows_count;
             }
-            let mut first_invalid_col = cols_count;
+            let first_invalid_col;
             if dir_col_offset == 1 {
                 if word.len() > rows_count {
                     continue;
                 }
                 first_invalid_col = cols_count - word.len();
+            } else {
+                first_invalid_col = cols_count;
             }
 
             let rand_row_offset = rng.gen_range(0..first_invalid_row);
