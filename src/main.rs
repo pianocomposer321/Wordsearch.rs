@@ -1,5 +1,5 @@
 use once_cell::sync::OnceCell;
-use rand::{rngs::ThreadRng, Rng};
+use rand::{rngs::ThreadRng, Rng, seq::IteratorRandom};
 use thiserror::Error;
 
 const COLS: usize = 15;
@@ -46,6 +46,7 @@ fn generate_board(
     rows: usize,
     cols: usize,
     words: &Vec<&'static str>,
+    fill_random: bool,
     max_iterations: Option<usize>,
 ) -> Result<Board, GenerationError> {
     let mut iterations: usize = 0;
@@ -158,7 +159,7 @@ fn generate_board(
         Err(GenerationError::NoPossibleBoard)
     }
 
-    let generated = generate_board_impl(
+    let mut generated = generate_board_impl(
         rows,
         cols,
         words,
@@ -168,8 +169,18 @@ fn generate_board(
         max_iterations,
         &mut directions_count,
         &mut rng,
-    );
-    generated
+    )?;
+    if fill_random {
+        let alphabet = "abcdefghijklmnopqrstuvwxyz";
+        for row in generated.iter_mut() {
+            for (ind, letter) in row.clone().iter().enumerate() {
+                if *letter == ' ' {
+                    row[ind] = alphabet.chars().choose(&mut rng).unwrap();
+                }
+            }
+        }
+    }
+    Ok(generated)
 }
 
 fn main() -> Result<(), GenerationError> {
@@ -183,6 +194,7 @@ fn main() -> Result<(), GenerationError> {
         ROWS,
         COLS,
         words,
+        true,
         Some(DEFAULT_MAX_ITERATIONS),
     )?);
 
