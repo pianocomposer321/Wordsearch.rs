@@ -69,7 +69,6 @@ fn generate_board(
             Direction::Vertical,
         ];
         directions.sort_by_key(|direction| directions_count[*direction as usize]);
-        // directions.shuffle(rng);
         for direction in directions.iter() {
             let mut max_row = rows_count;
 
