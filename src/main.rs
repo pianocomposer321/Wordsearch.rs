@@ -70,38 +70,33 @@ fn generate_board(
         ];
         directions.sort_by_key(|direction| directions_count[*direction as usize]);
         for direction in directions.iter() {
-            let mut max_row = rows_count;
-
             // This works because (*direction as usize) will be 0, 1, or 2. Adding one gives 1, 2,
             // or 3, or 0b01, 0b10, or 0b11. & 1 gives the last bit, and << 1 gives the second to
             // last.
             let dir_col_offset = (*direction as usize + 1) & 1;
             let dir_row_offset = (*direction as usize + 1) >> 1;
 
+            let mut first_invalid_row = rows_count;
             if dir_row_offset == 1 {
                 if word.len() > rows_count {
                     continue;
                 }
-                max_row = rows_count - word.len();
+                first_invalid_row = rows_count - word.len();
             }
-            if dir_col_offset == 1 && word.len() > rows_count {
-                continue;
-            }
-
-            let rand_initial_row = rng.gen_range(0..max_row);
-            for mut row_ind_for_first_letter in 0..rows_count {
-                let mut max_col = cols_count;
-                if dir_col_offset == 1 {
-                    if word.len() > cols_count {
-                        continue;
-                    }
-                    max_col = cols_count - word.len();
+            let mut first_invalid_col = cols_count;
+            if dir_col_offset == 1 {
+                if word.len() > rows_count {
+                    continue;
                 }
+                first_invalid_col = cols_count - word.len();
+            }
 
-                row_ind_for_first_letter = (row_ind_for_first_letter + rand_initial_row) % max_row;
+            let rand_row_offset = rng.gen_range(0..first_invalid_row);
+            for row_ind in 0..rows_count {
+                let row_ind_for_first_letter = (row_ind + rand_row_offset) % first_invalid_row;
 
-                let rand_initial_col = rng.gen_range(0..max_col);
-                for mut col_ind_for_first_letter in 0..cols_count {
+                let rand_col_offset = rng.gen_range(0..first_invalid_col);
+                for col_ind in 0..cols_count {
                     *iterations += 1;
                     if let Some(max_iterations) = max_iterations {
                         if *iterations > max_iterations {
@@ -114,7 +109,7 @@ fn generate_board(
                         board_copy.push(row.clone());
                     }
 
-                    col_ind_for_first_letter = (col_ind_for_first_letter + rand_initial_col) % max_col;
+                    let col_ind_for_first_letter = (col_ind + rand_col_offset) % first_invalid_col;
                     let mut succesful = true;
 
                     let mut row_ind_for_current_letter = row_ind_for_first_letter;
