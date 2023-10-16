@@ -1,7 +1,5 @@
-use std::collections::HashMap;
-
 use once_cell::sync::OnceCell;
-use rand::{rngs::ThreadRng, seq::SliceRandom, Rng};
+use rand::{rngs::ThreadRng, Rng};
 use thiserror::Error;
 
 const COLS: usize = 20;
@@ -10,21 +8,11 @@ const DEFAULT_MAX_ITERATIONS: usize = 1_000_000;
 
 static WORDS: OnceCell<Vec<&'static str>> = OnceCell::new();
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 enum Direction {
     Horizontal,
-    Diagonal,
     Vertical,
-}
-
-impl From<&Direction> for (usize, usize) {
-    fn from(value: &Direction) -> Self {
-        match &value {
-            Direction::Horizontal => (0, 1),
-            Direction::Diagonal => (1, 1),
-            Direction::Vertical => (1, 0),
-        }
-    }
+    Diagonal,
 }
 
 type Board = Vec<Vec<char>>;
@@ -61,11 +49,7 @@ fn generate_board(
     let mut iterations: usize = 0;
     let mut rng = rand::thread_rng();
 
-    let mut directions_count: HashMap<(usize, usize), usize> = HashMap::from([
-            ((&Direction::Horizontal).into(), 0),
-            ((&Direction::Diagonal).into(), 0),
-            ((&Direction::Vertical).into(), 0),
-    ]);
+    let mut directions_count: Vec<u8> = vec![0, 0, 0];
 
     fn generate_board_impl(
         rows_count: usize,
@@ -75,7 +59,7 @@ fn generate_board(
         board: Board,
         iterations: &mut usize,
         max_iterations: Option<usize>,
-        directions_count: &mut HashMap<(usize, usize), usize>,
+        directions_count: &mut Vec<u8>,
         rng: &mut ThreadRng,
     ) -> Result<Board, GenerationError> {
         let word = words[word_ind];
@@ -84,27 +68,31 @@ fn generate_board(
             Direction::Diagonal,
             Direction::Vertical,
         ];
-        directions.sort_by_key(|direction| directions_count[&(direction).into()]);
+        directions.sort_by_key(|direction| directions_count[*direction as usize]);
         // directions.shuffle(rng);
-        for direction in directions
-            .iter()
-            .map(|direction| Into::<(usize, usize)>::into(direction))
-        {
+        for direction in directions.iter() {
             let mut max_row = rows_count;
-            if direction.0 == 1 {
+
+            // This works because (*direction as usize) will be 0, 1, or 2. Adding one gives 1, 2,
+            // or 3, or 0b01, 0b10, or 0b11. & 1 gives the last bit, and << 1 gives the second to
+            // last.
+            let dir_col_offset = (*direction as usize + 1) & 1;
+            let dir_row_offset = (*direction as usize + 1) >> 1;
+
+            if dir_row_offset == 1 {
                 if word.len() > rows_count {
                     continue;
                 }
                 max_row = rows_count - word.len();
             }
-            if direction.1 == 1 && word.len() > rows_count {
+            if dir_col_offset == 1 && word.len() > rows_count {
                 continue;
             }
 
             let rand_initial_row = rng.gen_range(0..max_row);
             for mut row_ind_for_first_letter in 0..rows_count {
                 let mut max_col = cols_count;
-                if direction.1 == 1 {
+                if dir_col_offset == 1 {
                     if word.len() > cols_count {
                         continue;
                     }
@@ -138,15 +126,15 @@ fn generate_board(
                             break;
                         }
                         board_copy[row_ind_for_current_letter][col_ind_for_current_letter] = letter;
-                        row_ind_for_current_letter += direction.0;
-                        col_ind_for_current_letter += direction.1;
+                        row_ind_for_current_letter += dir_row_offset;
+                        col_ind_for_current_letter += dir_col_offset;
                     }
                     if succesful {
                         if word_ind + 1 == words.len() {
                             return Ok(board);
                         }
 
-                        directions_count.insert(direction, directions_count[&direction] + 1);
+                        directions_count[*direction as usize] += 1;
 
                         if let Ok(board) = generate_board_impl(
                             rows_count,
@@ -161,7 +149,7 @@ fn generate_board(
                         ) {
                             return Ok(board);
                         } else {
-                            directions_count.insert(direction, directions_count[&direction] - 1);
+                            directions_count[*direction as usize] -= 1;
                             continue;
                         };
                     }
