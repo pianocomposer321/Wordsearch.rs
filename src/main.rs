@@ -169,7 +169,6 @@ fn generate_board(
         &mut directions_count,
         &mut rng,
     );
-    dbg!(directions_count);
     generated
 }
 
