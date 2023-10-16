@@ -73,7 +73,7 @@ fn generate_board(
         directions.sort_by_key(|direction| directions_count[*direction as usize]);
         for direction in directions.iter() {
             // This works because (*direction as usize) will be 0, 1, or 2. Adding one gives 1, 2,
-            // or 3, or 0b01, 0b10, or 0b11. & 1 gives the last bit, and << 1 gives the second to
+            // or 3, or 0b01, 0b10, or 0b11. & 1 gives the last bit, and >> 1 gives the second to
             // last.
             let dir_col_offset = (*direction as usize + 1) & 1;
             let dir_row_offset = (*direction as usize + 1) >> 1;
