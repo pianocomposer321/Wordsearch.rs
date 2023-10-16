@@ -104,7 +104,7 @@ fn generate_board(
                         }
                     }
 
-                    let mut board_copy = Vec::new();
+                    let mut board_copy = Vec::with_capacity(board.len());
                     for row in board.iter() {
                         board_copy.push(row.clone());
                     }
