@@ -144,7 +144,6 @@ fn generate_board(
                             return Ok(board);
                         } else {
                             directions_count[*direction as usize] -= 1;
-                            continue;
                         };
                     }
                 }
