@@ -7,9 +7,8 @@ const ROWS: usize = 15;
 const MAX_ITERATIONS: usize = 1_000_000;
 const ALPHABET: &[u8; 26] = b"abcdefghijklmnopqrstuvwxyz";
 const OVERLINE: char = '\u{203E}';
-
     
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy)]
 enum Direction {
     Horizontal,
     Vertical,
