@@ -14,9 +14,9 @@ const OVERLINE: char = '\u{203E}';
 // Possible directions for word placement on the word search puzzle board.
 #[derive(Clone, Copy)]
 enum Direction {
-    Horizontal,  
-    Vertical,    
-    Diagonal,    
+    Horizontal,
+    Vertical,
+    Diagonal,
 }
 
 // Represents the word search puzzle board as a 2D grid of characters.
@@ -28,7 +28,7 @@ enum GenerationError {
     #[error("No possible board with this configuration. Increase board size.")]
     NoPossibleBoard,
     #[error("Reached maximum iterations. Increase iteration limit or board size.")]
-    MaxIterationsReached, 
+    MaxIterationsReached,
 }
 
 /// Prints the word search puzzle board with borders.
@@ -46,7 +46,7 @@ fn print_board(board: &Board) {
                 .collect::<String>()
         );
     }
-    println!(" {}", OVERLINE.to_string().repeat(board[0].len() * 2));    
+    println!(" {}", OVERLINE.to_string().repeat(board[0].len() * 2));
 }
 
 /// Places a single letter on the board at the specified position.
@@ -55,14 +55,14 @@ fn place_letter_board (
     board: &mut Board,
     letter: char,
     x: usize,
-    y: usize, 
+    y: usize,
 ) -> bool {
     // Check if the coordinates are within the bounds of the board
     if x >= board.len() || y >= board[x].len() {
         return false;
     }
 
-    // Check if there is already a letter 
+    // Check if there is already a letter
     if board[x][y] != ' ' {
         return false;
     }
@@ -79,13 +79,13 @@ fn place_word_board (
     direction: Direction,
     mut x: usize,
     mut y: usize,
-) -> Option<Board> 
+) -> Option<Board>
 {
     let (x_offset, y_offset) = match direction {
         Direction::Horizontal => (1,0),
         Direction::Vertical => (0,1),
         Direction::Diagonal => (1,1),
-    }; 
+    };
     for ch in word.chars() {
         if !place_letter_board(&mut board, ch, x, y){
             return None;
@@ -124,7 +124,7 @@ fn place_words_board (
 
     let rows = board.len();
     let cols = board.iter().map(|row| row.len()).max().unwrap_or(0);
-    
+
     // Check if all words can fit within the board dimensions
     if !words.iter().all(|&word| word.len() <= rows && word.len() <= cols) {
         return Err(GenerationError::NoPossibleBoard);
@@ -133,20 +133,20 @@ fn place_words_board (
     let mut iterations: usize = 0;
     let mut rng: StdRng = SeedableRng::from_seed(rng_seed);
     let mut directions_counts = vec![
-        (Direction::Horizontal , 0), 
-        (Direction::Vertical , 0), 
+        (Direction::Horizontal , 0),
+        (Direction::Vertical , 0),
         (Direction::Diagonal , 0)];
-    
+
     for word in words {
         loop {
             if iterations >= MAX_ITERATIONS {
                 return Err(GenerationError::MaxIterationsReached);
             }
-            
+
             // Create a random x and y on the board
             let x = rng.gen_range(0..cols);
             let y = rng.gen_range(0..rows);
-            
+
             // Order directions based on the least words in the puzzle with the direction
             directions_counts.sort_by(|a, b| a.1.cmp(&b.1));
             let mut put_word_success = false;
@@ -176,7 +176,7 @@ fn main() -> Result<(), GenerationError> {
         .expect("Failed to read the file");
 
     // Dimensions for the word search puzzle board.
-    let (cols, rows) = (15, 15); 
+    let (cols, rows) = (15, 15);
 
     let words: Vec<&str> = content.lines().collect();
     let board = vec![vec![' '; cols]; rows];
