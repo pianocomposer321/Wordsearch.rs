@@ -2,27 +2,33 @@ use std::fs;
 use rand::{Rng, SeedableRng, rngs::StdRng};
 use thiserror::Error;
 
-const COLS: usize = 15;
-const ROWS: usize = 15;
+// Limit for how many times the generator will attempt to create a board.
 const MAX_ITERATIONS: usize = 1_000_000;
+
+// Alphabet characters for random placement on the board.
 const ALPHABET: &[u8; 26] = b"abcdefghijklmnopqrstuvwxyz";
+
+// Character used for overlining in board display.
 const OVERLINE: char = '\u{203E}';
-    
+
+// Possible directions for word placement on the word search puzzle board.
 #[derive(Clone, Copy)]
 enum Direction {
-    Horizontal,
-    Vertical,
-    Diagonal,
+    Horizontal,  
+    Vertical,    
+    Diagonal,    
 }
 
+// Represents the word search puzzle board as a 2D grid of characters.
 type Board = Vec<Vec<char>>;
 
+// Errors that might occur during word search puzzle generation.
 #[derive(Error, Debug)]
 enum GenerationError {
     #[error("No possible board with this configuration. Increase board size.")]
     NoPossibleBoard,
     #[error("Reached maximum iterations. Increase iteration limit or board size.")]
-    MaxIterationsReached,
+    MaxIterationsReached, 
 }
 
 fn print_board(board: &Board) {
@@ -161,8 +167,11 @@ fn main() -> Result<(), GenerationError> {
     let content = fs::read_to_string("words.txt")
         .expect("Failed to read the file");
 
+    // Dimensions for the word search puzzle board.
+    let (cols, rows) = (15, 15); 
+
     let words: Vec<&str> = content.lines().collect();
-    let board = vec![vec![' '; COLS]; ROWS];
+    let board = vec![vec![' '; cols]; rows];
     let seed = [0; 32];
 
     println!("Placing words on the board!");
