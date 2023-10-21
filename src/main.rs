@@ -1,13 +1,12 @@
-use once_cell::sync::OnceCell;
-use rand::{rngs::ThreadRng, seq::IteratorRandom, Rng};
+use std::fs;
+use rand::{Rng, SeedableRng, rngs::StdRng};
 use thiserror::Error;
 
 const COLS: usize = 15;
 const ROWS: usize = 15;
-const DEFAULT_MAX_ITERATIONS: usize = 1_000_000;
-
-static WORDS: OnceCell<Vec<&'static str>> = OnceCell::new();
-
+const MAX_ITERATIONS: usize = 1_000_000;
+const ALPHABET: &[u8; 26] = b"abcdefghijklmnopqrstuvwxyz";
+    
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 enum Direction {
     Horizontal,
@@ -16,6 +15,14 @@ enum Direction {
 }
 
 type Board = Vec<Vec<char>>;
+
+#[derive(Error, Debug)]
+enum GenerationError {
+    #[error("No possible board with this configuration. Increase board size.")]
+    NoPossibleBoard,
+    #[error("Reached maximum iterations. Increase iteration limit or board size.")]
+    MaxIterationsReached,
+}
 
 fn print_board(board: &Board) {
     println!(" {}", "_".repeat(board[0].len() * 2));
@@ -31,175 +38,139 @@ fn print_board(board: &Board) {
                 .collect::<String>()
         );
     }
-    println!("|{}|", "_".repeat(board[0].len() * 2));
+    println!(" {}", "ΓÇ╛".repeat(board[0].len() * 2));
 }
 
-#[derive(Error, Debug)]
-enum GenerationError {
-    #[error("No possible board with this configuration. Increase board size.")]
-    NoPossibleBoard,
-    #[error("Reached maximum iterations. Increase iteration limit or board size.")]
-    MaxIterationsReached,
+fn place_letter_board (
+    board: &mut Board,
+    letter: char,
+    x: usize,
+    y: usize, 
+) -> bool {
+    // Check if the coordinates are within the bounds of the board
+    if x >= board.len() || y >= board[x].len() {
+        return false;
+    }
+
+    // Check if there is already a letter 
+    if board[x][y] != ' ' {
+        return false;
+    }
+
+    board[x][y] = letter;
+    true
 }
 
-fn generate_board(
-    rows: usize,
-    cols: usize,
-    words: &Vec<&'static str>,
-    fill_random: bool,
-    max_iterations: Option<usize>,
+fn place_word_board (
+    word: &str,
+    mut board: Board,
+    direction: Direction,
+    mut x: usize,
+    mut y: usize,
+) -> Option<Board> 
+{
+    let (x_offset, y_offset) = match direction {
+        Direction::Horizontal => (1,0),
+        Direction::Vertical => (0,1),
+        Direction::Diagonal => (1,1),
+    }; 
+    for ch in word.chars() {
+        if !place_letter_board(&mut board, ch, x, y){
+            return None;
+        }
+
+        x += x_offset;
+        y += y_offset;
+    }
+    Some(board)
+}
+
+fn fill_board (
+    mut board: Board,
+    rng_seed: [u8; 32],
+) -> Board {
+    let mut rng: StdRng = SeedableRng::from_seed(rng_seed);
+    for row in board.iter_mut() {
+        for position in row.iter_mut() {
+            if *position == ' ' {
+                let random_alphabet_index = rng.gen_range(0..ALPHABET.len());
+                *position = ALPHABET[random_alphabet_index] as char;
+            }
+        }
+    }
+    board
+}
+
+fn place_words_board (
+    mut board: Board,
+    words: Vec<&str>,
+    rng_seed: [u8; 32],
 ) -> Result<Board, GenerationError> {
+
+    let rows = board.len();
+    let cols = board.iter().map(|row| row.len()).max().unwrap_or(0);
+    
+    // Check if all words can fit within the board dimensions
+    if !words.iter().all(|&word| word.len() <= rows && word.len() <= cols) {
+        return Err(GenerationError::NoPossibleBoard);
+    }
+
     let mut iterations: usize = 0;
-    let mut rng = rand::thread_rng();
-
-    let mut directions_count: Vec<u8> = vec![0, 0, 0];
-
-    fn generate_board_impl(
-        rows_count: usize,
-        cols_count: usize,
-        words: &Vec<&'static str>,
-        word_ind: usize,
-        board: Board,
-        iterations: &mut usize,
-        max_iterations: Option<usize>,
-        directions_count: &mut Vec<u8>,
-        rng: &mut ThreadRng,
-    ) -> Result<Board, GenerationError> {
-        let word = words[word_ind];
-        let mut directions = [
-            Direction::Horizontal,
-            Direction::Diagonal,
-            Direction::Vertical,
-        ];
-        directions.sort_by_key(|direction| directions_count[*direction as usize]);
-        for direction in directions.iter() {
-            // This works because (*direction as usize) will be 0, 1, or 2. Adding one gives 1, 2,
-            // or 3, or 0b01, 0b10, or 0b11. & 1 gives the last bit, and >> 1 gives the second to
-            // last.
-            let dir_col_offset = (*direction as usize + 1) & 1;
-            let dir_row_offset = (*direction as usize + 1) >> 1;
-
-            let first_invalid_row;
-            if dir_row_offset == 1 {
-                if word.len() > rows_count {
-                    continue;
-                }
-                first_invalid_row = rows_count - word.len();
-            } else {
-                first_invalid_row = rows_count;
+    let mut rng: StdRng = SeedableRng::from_seed(rng_seed);
+    let mut directions_counts = vec![
+        (Direction::Horizontal , 0), 
+        (Direction::Vertical , 0), 
+        (Direction::Diagonal , 0)];
+    
+    for word in words {
+        loop {
+            if iterations >= MAX_ITERATIONS {
+                return Err(GenerationError::MaxIterationsReached);
             }
-            let first_invalid_col;
-            if dir_col_offset == 1 {
-                if word.len() > rows_count {
-                    continue;
-                }
-                first_invalid_col = cols_count - word.len();
-            } else {
-                first_invalid_col = cols_count;
-            }
+            
+            // Create a random x and y on the board
+            let x = rng.gen_range(0..cols);
+            let y = rng.gen_range(0..rows);
+            
+            // Order directions based on the least words in the puzzle with the direction
+            directions_counts.sort_by(|a, b| a.1.cmp(&b.1));
+            let mut put_word_success = false;
 
-            let rand_row_offset = rng.gen_range(0..first_invalid_row);
-            for row_ind in 0..rows_count {
-                let row_ind_for_first_letter = (row_ind + rand_row_offset) % first_invalid_row;
-
-                let rand_col_offset = rng.gen_range(0..first_invalid_col);
-                for col_ind in 0..cols_count {
-                    *iterations += 1;
-                    if let Some(max_iterations) = max_iterations {
-                        if *iterations > max_iterations {
-                            return Err(GenerationError::MaxIterationsReached);
-                        }
-                    }
-
-                    let col_ind_for_first_letter = (col_ind + rand_col_offset) % first_invalid_col;
-
-                    let mut board_copy = Vec::with_capacity(board.len());
-                    for row in board.iter() {
-                        board_copy.push(row.clone());
-                    }
-
-                    let mut row_ind_for_current_letter = row_ind_for_first_letter;
-                    let mut col_ind_for_current_letter = col_ind_for_first_letter;
-                    let mut succesful = true;
-                    for letter in word.chars() {
-                        if board[row_ind_for_current_letter][col_ind_for_current_letter] != ' '
-                            && board[row_ind_for_current_letter][col_ind_for_current_letter]
-                                != letter
-                        {
-                            succesful = false;
-                            break;
-                        }
-                        board_copy[row_ind_for_current_letter][col_ind_for_current_letter] = letter;
-                        row_ind_for_current_letter += dir_row_offset;
-                        col_ind_for_current_letter += dir_col_offset;
-                    }
-                    if succesful {
-                        if word_ind + 1 == words.len() {
-                            return Ok(board);
-                        }
-
-                        directions_count[*direction as usize] += 1;
-
-                        if let Ok(board) = generate_board_impl(
-                            rows_count,
-                            cols_count,
-                            words,
-                            word_ind + 1,
-                            board_copy,
-                            iterations,
-                            max_iterations,
-                            directions_count,
-                            rng,
-                        ) {
-                            return Ok(board);
-                        } else {
-                            directions_count[*direction as usize] -= 1;
-                        };
-                    }
+            // Try placing a word in all directions on a certain position
+            for (direction, count) in directions_counts.iter_mut() {
+                if let Some(result) = place_word_board(word, board.clone(), *direction, x, y) {
+                    board = result;
+                    // Increase the count of words on the board with this direction
+                    *count += 1;
+                    put_word_success = true;
+                    break;
                 }
             }
-        }
-        Err(GenerationError::NoPossibleBoard)
-    }
-
-    let mut generated = generate_board_impl(
-        rows,
-        cols,
-        words,
-        0,
-        vec![vec![' '; cols]; rows],
-        &mut iterations,
-        max_iterations,
-        &mut directions_count,
-        &mut rng,
-    )?;
-    if fill_random {
-        let alphabet = "abcdefghijklmnopqrstuvwxyz";
-        for row in generated.iter_mut() {
-            for (ind, letter) in row.clone().iter().enumerate() {
-                if *letter == ' ' {
-                    row[ind] = alphabet.chars().choose(&mut rng).unwrap();
-                }
+            iterations += 1;
+            if put_word_success {
+                break;
             }
         }
     }
-    Ok(generated)
+
+    Ok(board)
 }
 
 fn main() -> Result<(), GenerationError> {
-    WORDS
-        .set(include_str!("../words.txt").lines().collect())
-        .unwrap();
+    let content = fs::read_to_string("words.txt")
+        .expect("Failed to read the file");
 
-    let words = WORDS.get().unwrap();
+    let words: Vec<&str> = content.lines().collect();
+    let board = vec![vec![' '; COLS]; ROWS];
+    let seed = [0; 32];
 
-    print_board(&generate_board(
-        ROWS,
-        COLS,
-        words,
-        true,
-        Some(DEFAULT_MAX_ITERATIONS),
-    )?);
+    println!("Placing words on the board!");
+    let word_board = place_words_board(board, words, seed)?;
+    print_board(&word_board);
+
+    println!("Filling the empty spaces on the board!");
+    let complete_board = fill_board(word_board, seed);
+    print_board(&complete_board);
 
     Ok(())
 }
