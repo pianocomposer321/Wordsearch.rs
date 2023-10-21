@@ -31,6 +31,7 @@ enum GenerationError {
     MaxIterationsReached, 
 }
 
+/// Prints the word search puzzle board with borders.
 fn print_board(board: &Board) {
     println!(" {}", "_".repeat(board[0].len() * 2));
     for row in board.iter() {
@@ -48,6 +49,8 @@ fn print_board(board: &Board) {
     println!(" {}", OVERLINE.to_string().repeat(board[0].len() * 2));    
 }
 
+/// Places a single letter on the board at the specified position.
+/// Returns `false` if the position is out of bounds or already occupied.
 fn place_letter_board (
     board: &mut Board,
     letter: char,
@@ -68,6 +71,8 @@ fn place_letter_board (
     true
 }
 
+/// Places a word on the board in the given direction.
+/// Returns `None` if the word cannot be placed.
 fn place_word_board (
     word: &str,
     mut board: Board,
@@ -92,6 +97,7 @@ fn place_word_board (
     Some(board)
 }
 
+/// Fills empty spaces on the board with random letters.
 fn fill_board (
     mut board: Board,
     rng_seed: [u8; 32],
@@ -108,6 +114,8 @@ fn fill_board (
     board
 }
 
+/// Attempts to place a list of words on the board.
+/// Returns an error if the words cannot be placed after multiple attempts.
 fn place_words_board (
     mut board: Board,
     words: Vec<&str>,
