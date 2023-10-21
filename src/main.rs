@@ -6,6 +6,8 @@ const COLS: usize = 15;
 const ROWS: usize = 15;
 const MAX_ITERATIONS: usize = 1_000_000;
 const ALPHABET: &[u8; 26] = b"abcdefghijklmnopqrstuvwxyz";
+const OVERLINE: char = '\u{203E}';
+
     
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 enum Direction {
@@ -38,7 +40,7 @@ fn print_board(board: &Board) {
                 .collect::<String>()
         );
     }
-    println!(" {}", "ΓÇ╛".repeat(board[0].len() * 2));
+    println!(" {}", OVERLINE.to_string().repeat(board[0].len() * 2));    
 }
 
 fn place_letter_board (
