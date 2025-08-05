@@ -24,12 +24,12 @@ class App:
         self.state = AppState.READY
         self.board = []
 
-        self.window.generate_signal.connect(lambda: asyncio.run(self.generate()))
+        self.window.generate_signal.connect(lambda: asyncio.run(self.generate_board()))
 
     def exec(self) -> int:
         return self.qapp.exec()
 
-    async def generate(self):
+    async def generate_board(self):
         self.state = AppState.GENERATING
         self.event_manager.state_changed.emit(self.state)
 
