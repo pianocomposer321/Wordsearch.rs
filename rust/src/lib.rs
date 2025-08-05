@@ -1,12 +1,10 @@
-use once_cell::sync::OnceCell;
 use rand::{rngs::ThreadRng, seq::IteratorRandom, Rng};
 use thiserror::Error;
+use std::io;
 
-const COLS: usize = 15;
-const ROWS: usize = 15;
-const DEFAULT_MAX_ITERATIONS: usize = 1_000_000;
-
-static WORDS: OnceCell<Vec<&'static str>> = OnceCell::new();
+pub const COLS: usize = 15;
+pub const ROWS: usize = 15;
+pub const DEFAULT_MAX_ITERATIONS: usize = 1_000_000;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 enum Direction {
@@ -17,7 +15,7 @@ enum Direction {
 
 type Board = Vec<Vec<char>>;
 
-fn print_board(board: &Board) {
+pub fn print_board(board: &Board) {
     println!(" {}", "_".repeat(board[0].len() * 2));
     for row in board.iter() {
         println!(
@@ -35,17 +33,25 @@ fn print_board(board: &Board) {
 }
 
 #[derive(Error, Debug)]
-enum GenerationError {
+pub enum GenerationError {
     #[error("No possible board with this configuration. Increase board size.")]
     NoPossibleBoard,
     #[error("Reached maximum iterations. Increase iteration limit or board size.")]
     MaxIterationsReached,
 }
 
-fn generate_board(
+#[derive(Error, Debug)]
+pub enum MainError {
+    #[error(transparent)]
+    GenerateionError(#[from] GenerationError),
+    #[error(transparent)]
+    IoError(#[from] io::Error),
+}
+
+pub fn generate_board(
     rows: usize,
     cols: usize,
-    words: &Vec<&'static str>,
+    words: &Vec<&str>,
     fill_random: bool,
     max_iterations: Option<usize>,
 ) -> Result<Board, GenerationError> {
@@ -57,7 +63,7 @@ fn generate_board(
     fn generate_board_impl(
         rows_count: usize,
         cols_count: usize,
-        words: &Vec<&'static str>,
+        words: &Vec<&str>,
         word_ind: usize,
         board: Board,
         iterations: &mut usize,
@@ -184,22 +190,4 @@ fn generate_board(
         }
     }
     Ok(generated)
-}
-
-fn main() -> Result<(), GenerationError> {
-    WORDS
-        .set(include_str!("../words.txt").lines().collect())
-        .unwrap();
-
-    let words = WORDS.get().unwrap();
-
-    print_board(&generate_board(
-        ROWS,
-        COLS,
-        words,
-        true,
-        Some(DEFAULT_MAX_ITERATIONS),
-    )?);
-
-    Ok(())
 }
