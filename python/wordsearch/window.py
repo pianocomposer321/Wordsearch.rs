@@ -61,6 +61,7 @@ class MainWindow(QMainWindow):
 
         self.word_list = QPlainTextEdit()
         self.word_list.setFixedHeight(300)
+        self.word_list.textChanged.connect(self._text_changed)
         self.layout.addWidget(self.word_list)
 
         _container = QHBoxLayout()
@@ -77,6 +78,7 @@ class MainWindow(QMainWindow):
         self.generate_button.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_DialogApplyButton))
         self.generate_button.setStatusTip("Generate PDF using listed words")
         self.generate_button.setFixedWidth(200)
+        self.generate_button.setEnabled(False)
         self.generate_button.clicked.connect(self._generate_button_clicked)
         _container.addWidget(self.generate_button, alignment=Qt.AlignmentFlag.AlignRight)
 
@@ -103,3 +105,9 @@ class MainWindow(QMainWindow):
                 self.status_message.setText("Generating...")
             case AppState.GENERATED:
                 self.status_message.setText("PDF generation successful.")
+
+    def _text_changed(self):
+        if self.word_list.toPlainText():
+            self.generate_button.setEnabled(True)
+        else:
+            self.generate_button.setEnabled(False)
