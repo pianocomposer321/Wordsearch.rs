@@ -2,6 +2,7 @@ from PySide6.QtCore import QObject, Signal
 from PySide6.QtGui import QFont, Qt
 from PySide6.QtWidgets import (
     QApplication,
+    QFileDialog,
     QHBoxLayout,
     QLabel,
     QLayout,
@@ -34,7 +35,7 @@ class MainWindow(QMainWindow):
     status_bar: QStatusBar
     status_message: QLabel
 
-    generate_signal = Signal()
+    generate_signal = Signal(str)
 
     def __init__(self, app: QApplication, event_manager: EventManager):
         super().__init__()
@@ -95,7 +96,9 @@ class MainWindow(QMainWindow):
         return self.word_list.toPlainText()
 
     def _generate_button_clicked(self):
-        self.generate_signal.emit()
+        filename, _ = QFileDialog.getSaveFileName(self, "Generate PDF", "", "PDF Files (*.pdf)")
+        print(filename)
+        self.generate_signal.emit(filename)
 
     def _app_state_changed(self, new_state: AppState):
         match new_state:

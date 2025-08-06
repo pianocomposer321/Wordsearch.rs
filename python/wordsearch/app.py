@@ -10,17 +10,19 @@ import asyncio
 import sys
 import os
 
-async def generate_board(words: str) -> list[list[str]]:
+async def generate_pdf(words: str, output_filename: str):
     with tempfile.NamedTemporaryFile(mode="w+t", encoding="utf-8") as word_list_file:
         word_list_file.write(words)
         word_list_file.flush()
 
-        process = await asyncio.create_subprocess_exec("./bin/wordsearch", word_list_file.name, "--json",
+        process = await asyncio.create_subprocess_exec("./bin/wordsearch", word_list_file.name, "-o", output_filename,
                                                        stdout=asyncio.subprocess.PIPE,
                                                        stderr=asyncio.subprocess.PIPE)
         assert(process.stdout and process.stderr)
         output = await process.stdout.read()
         errors = await process.stderr.read()
+        if output:
+            print(f"STDOUT: {output.decode().strip()}")
         if errors:
             print(f"STDERR: {errors.decode().strip()}")
 
@@ -28,14 +30,11 @@ async def generate_board(words: str) -> list[list[str]]:
         if process.returncode != 0:
             print(f"Process exited with nonzero exit code: {process.returncode}")
 
-        return json.loads(output.decode("ascii"))
-
 class App:
     qapp: QApplication
     window: MainWindow
     state: AppState
     event_manager: EventManager
-    board: list
 
     def __init__(self, argv):
         self.qapp = QApplication(argv)
@@ -44,19 +43,19 @@ class App:
         self.window.show()
 
         self.state = AppState.READY
-        self.board = []
         self.pdf = None
 
-        self.window.generate_signal.connect(lambda: asyncio.run(self.generate_board()))
+        self.window.generate_signal.connect(lambda filename: asyncio.run(self.generate_board(filename)))
 
     def exec(self) -> int:
         return self.qapp.exec()
 
-    async def generate_board(self):
+    async def generate_board(self, filename: str):
         self.state = AppState.GENERATING
         self.event_manager.state_changed.emit(self.state)
 
-        self.board = await generate_board(self.window.get_words())
+        print(filename)
+        await generate_pdf(self.window.get_words(), filename)
 
         self.state = AppState.GENERATED
         self.event_manager.state_changed.emit(self.state)
