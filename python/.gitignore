@@ -1,2 +1,4 @@
 bin/
-wordsearch/__pycache__/
+*/__pycache__
+output.pdf
+.nvim.lua

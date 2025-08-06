@@ -2,6 +2,8 @@ use rand::{rngs::ThreadRng, seq::IteratorRandom, Rng};
 use thiserror::Error;
 use std::io;
 
+pub mod pdf;
+
 pub const COLS: usize = 15;
 pub const ROWS: usize = 15;
 pub const DEFAULT_MAX_ITERATIONS: usize = 1_000_000;

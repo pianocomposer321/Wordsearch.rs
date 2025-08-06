@@ -1,5 +1,5 @@
 from PySide6.QtCore import QObject, Signal
-from PySide6.QtGui import QFont
+from PySide6.QtGui import QFont, Qt
 from PySide6.QtWidgets import (
     QApplication,
     QHBoxLayout,
@@ -17,6 +17,8 @@ from PySide6.QtWidgets import (
 
 from wordsearch.event_manager import AppState, EventManager
 
+BUTTON_WIDTH = 180
+
 
 class MainWindow(QMainWindow):
     app: QApplication
@@ -27,10 +29,8 @@ class MainWindow(QMainWindow):
     layout: QLayout
     word_list: QPlainTextEdit
     output_pdf_line_edit: QLineEdit
-    output_pdf_dialogue_button: QPushButton
+    close_button: QPushButton
     generate_button: QPushButton
-    preview_button: QPushButton
-    save_button: QPushButton
     status_bar: QStatusBar
     status_message: QLabel
 
@@ -66,23 +66,19 @@ class MainWindow(QMainWindow):
         _container = QHBoxLayout()
         self.layout.addLayout(_container)
 
-        self.save_button = QPushButton("Save as...")
-        self.save_button.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_DialogSaveButton))
-        self.save_button.setStatusTip("Save PDF file")
-        _container.addWidget(self.save_button)
-        self.save_button.setEnabled(False)
-
-        self.preview_button = QPushButton("Preview...")
-        self.preview_button.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_FileDialogContentsView))
-        self.preview_button.setStatusTip("Preview PDF in default PDF viewer")
-        _container.addWidget(self.preview_button)
-        self.preview_button.setEnabled(False)
+        self.close_button = QPushButton("Close")
+        self.close_button.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_DialogCancelButton))
+        self.close_button.setStatusTip("Quit application")
+        self.close_button.setFixedWidth(200)
+        self.close_button.clicked.connect(self.app.quit)
+        _container.addWidget(self.close_button, alignment=Qt.AlignmentFlag.AlignLeft)
 
         self.generate_button = QPushButton("Generate")
         self.generate_button.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_DialogApplyButton))
         self.generate_button.setStatusTip("Generate PDF using listed words")
+        self.generate_button.setFixedWidth(200)
         self.generate_button.clicked.connect(self._generate_button_clicked)
-        _container.addWidget(self.generate_button)
+        _container.addWidget(self.generate_button, alignment=Qt.AlignmentFlag.AlignRight)
 
         self.main_widget = QWidget()
         self.main_widget.setLayout(self.layout)
@@ -105,3 +101,5 @@ class MainWindow(QMainWindow):
                 self.status_message.setText("Ready.")
             case AppState.GENERATING:
                 self.status_message.setText("Generating...")
+            case AppState.GENERATED:
+                self.status_message.setText("PDF generation successful.")
