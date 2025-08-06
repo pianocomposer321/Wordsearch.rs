@@ -1,7 +1,7 @@
 use clap::Parser;
 use serde_json;
 use std::{fs::File, io::Read};
-use wordsearch::*;
+use wordsearch::{pdf::PdfOptions, *};
 
 /// Wordsearch generator CLI
 #[derive(Parser, Debug)]
@@ -21,6 +21,38 @@ struct Args {
     /// Print the board to the console instead of generating a PDF
     #[arg(short, long)]
     print: bool,
+
+    /// Number of rows to include in the wordsearch grid
+    #[arg(short, long, default_value = "10")]
+    rows: usize,
+
+    /// Number of columns to include in the wordsearch grid
+    #[arg(short, long, default_value = "10")]
+    cols: usize,
+
+    /// Maximum iterations to try before aborting
+    #[arg(short, long, default_value = "1_000_000")]
+    max_iterations: usize,
+
+    /// Font size to use for the wordsearch grid
+    #[arg(long, default_value = "16")]
+    grid_font_size: f32,
+
+    /// Font size to use for the word bank
+    #[arg(long, default_value = "12")]
+    word_bank_font_size: f32,
+
+    /// Width of generated PDF document (in points)
+    #[arg(short, long, default_value = "612")]
+    width: f32,
+
+    /// Height of generated PDF document (in points)
+    #[arg(short, long, default_value = "792")]
+    height: f32,
+
+    /// Margin of generated PDF document (in points)
+    #[arg(short, long, default_value = "40")]
+    margin: f32,
 }
 
 fn main() -> Result<(), MainError> {
@@ -31,7 +63,7 @@ fn main() -> Result<(), MainError> {
     file.read_to_string(&mut contents)?;
     let words = contents.lines().collect();
 
-    let board = generate_board(ROWS, COLS, &words, true, Some(DEFAULT_MAX_ITERATIONS))?;
+    let board = generate_board(args.rows, args.cols, &words, true, Some(args.max_iterations))?;
 
     if args.json {
         println!("{}", serde_json::to_string(&board).unwrap());
@@ -43,7 +75,15 @@ fn main() -> Result<(), MainError> {
         return Ok(());
     }
 
-    pdf::generate_pdf(&args.output, &words, &board)?;
+    let pdf_opts = PdfOptions {
+        grid_font_size: args.grid_font_size,
+        word_bank_font_size: args.word_bank_font_size,
+        page_width: args.width,
+        page_height: args.height,
+        margin: args.margin,
+    };
+
+    pdf::generate_pdf(&args.output, &words, &board, &pdf_opts)?;
 
     Ok(())
 }

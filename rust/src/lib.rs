@@ -4,10 +4,6 @@ use thiserror::Error;
 
 pub mod pdf;
 
-pub const COLS: usize = 15;
-pub const ROWS: usize = 15;
-pub const DEFAULT_MAX_ITERATIONS: usize = 1_000_000;
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 enum Direction {
     Horizontal,
