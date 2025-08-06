@@ -48,6 +48,8 @@ pub enum MainError {
     GenerateionError(#[from] GenerationError),
     #[error(transparent)]
     IoError(#[from] io::Error),
+    #[error(transparent)]
+    PdfError(#[from] pdf::PdfError),
 }
 
 pub fn generate_board(
