@@ -1,7 +1,7 @@
-use std::{fs::File, io::Read};
-use wordsearch::*;
 use clap::Parser;
 use serde_json;
+use std::{fs::File, io::Read};
+use wordsearch::*;
 
 /// Wordsearch generator CLI
 #[derive(Parser, Debug)]
@@ -24,13 +24,7 @@ fn main() -> Result<(), MainError> {
     let words = contents.lines().collect();
 
     if args.json {
-        let board = generate_board(
-            ROWS,
-            COLS,
-            &words,
-            true,
-            Some(DEFAULT_MAX_ITERATIONS),
-        )?;
+        let board = generate_board(ROWS, COLS, &words, true, Some(DEFAULT_MAX_ITERATIONS))?;
 
         println!("{}", serde_json::to_string(&board).unwrap());
         return Ok(());

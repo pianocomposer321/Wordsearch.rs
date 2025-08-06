@@ -1,6 +1,6 @@
 use rand::{rngs::ThreadRng, seq::IteratorRandom, Rng};
-use thiserror::Error;
 use std::io;
+use thiserror::Error;
 
 pub mod pdf;
 
