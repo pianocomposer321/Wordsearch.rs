@@ -6,6 +6,7 @@ use thiserror::Error;
 use crate::{Board, GenerationError};
 
 const FONT: BuiltinFont = BuiltinFont::Helvetica;
+const BOLD_FONT: BuiltinFont = BuiltinFont::Helvetica_Bold;
 const FONT_HEIGHT_MULTIPLIER: f32 = 0.9251;
 
 #[derive(Error, Debug)]
@@ -143,7 +144,7 @@ fn create_grid(
         }
     }
 
-    c.center_text(opts.page_width / 2.0, box_y + grid_height + opts.margin - title_height / 2.0, FONT, opts.title_font_size, &opts.title)?;
+    c.center_text(opts.page_width / 2.0, box_y + grid_height + opts.margin - title_height / 2.0, BOLD_FONT, opts.title_font_size, &opts.title)?;
 
     Ok(())
 }

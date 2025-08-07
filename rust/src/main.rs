@@ -71,7 +71,6 @@ fn main() -> Result<(), MainError> {
     let board = generate_board(args.rows, args.cols, &words, true, Some(args.max_iterations))?;
 
     if args.json {
-        println!("{}", serde_json::to_string(&board).unwrap());
         return Ok(());
     }
 
@@ -89,7 +88,6 @@ fn main() -> Result<(), MainError> {
             (dimensions.0.parse().map_err(|_| MainError::ArgParseError)?, dimensions.1.parse().map_err(|_| MainError::ArgParseError)?)
         }
     };
-    println!("{page_width}, {page_height}");
 
     let pdf_opts = PdfOptions {
         grid_font_size: args.grid_font_size,
