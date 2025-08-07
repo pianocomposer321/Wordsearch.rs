@@ -46,6 +46,8 @@ pub enum MainError {
     IoError(#[from] io::Error),
     #[error(transparent)]
     PdfError(#[from] pdf::PdfError),
+    #[error("Invalid arguments passed")]
+    ArgParseError,
 }
 
 pub fn generate_board(

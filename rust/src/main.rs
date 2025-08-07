@@ -1,4 +1,5 @@
 use clap::Parser;
+use itertools::Itertools;
 use serde_json;
 use std::{fs::File, io::Read};
 use wordsearch::{pdf::PdfOptions, *};
@@ -31,27 +32,23 @@ struct Args {
     cols: usize,
 
     /// Maximum iterations to try before aborting
-    #[arg(long, default_value = "1000000")]
+    #[arg(short='i', long, default_value = "1000000")]
     max_iterations: usize,
 
     /// Font size to use for the wordsearch grid
-    #[arg(long, default_value = "16")]
+    #[arg(short, long, default_value = "16")]
     grid_font_size: f32,
 
     /// Font size to use for the word bank
-    #[arg(long, default_value = "12")]
+    #[arg(short, long, default_value = "12")]
     word_bank_font_size: f32,
 
-    /// Width of generated PDF document (in points)
-    #[arg(long, default_value = "612")]
-    width: f32,
-
-    /// Height of generated PDF document (in points)
-    #[arg(long, default_value = "792")]
-    height: f32,
+    /// Dimensions of generated PDF document
+    #[arg(short, long, default_value = "letter")]
+    size: String,
 
     /// Margin of generated PDF document (in points)
-    #[arg(short, long, default_value = "40")]
+    #[arg(short, long, default_value = "36")]
     margin: f32,
 }
 
@@ -75,11 +72,22 @@ fn main() -> Result<(), MainError> {
         return Ok(());
     }
 
+    let (page_width, page_height): (f32, f32) = match args.size.to_lowercase().as_str() {
+        "letter" => (612.0, 792.0),
+        "a4" => (595.0, 842.0),
+        other => {
+            let dimensions = other.split_once(',').ok_or(MainError::ArgParseError)?;
+
+            (dimensions.0.parse().map_err(|_| MainError::ArgParseError)?, dimensions.1.parse().map_err(|_| MainError::ArgParseError)?)
+        }
+    };
+    println!("{page_width}, {page_height}");
+
     let pdf_opts = PdfOptions {
         grid_font_size: args.grid_font_size,
         word_bank_font_size: args.word_bank_font_size,
-        page_width: args.width,
-        page_height: args.height,
+        page_width,
+        page_height,
         margin: args.margin,
     };
 
