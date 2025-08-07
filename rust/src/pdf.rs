@@ -24,6 +24,8 @@ pub struct PdfOptions {
     pub page_width: f32,
     pub page_height: f32,
     pub margin: f32,
+    pub title: String,
+    pub title_font_size: f32,
 }
 
 struct WordBankDimensions {
@@ -120,11 +122,12 @@ fn create_grid(
     let grid_width = grid_padding * 2.0 + cell_size * board[0].len() as f32;
     let grid_height = grid_padding * 2.0 + cell_size * board.len() as f32;
 
+    let title_height = opts.title_font_size * FONT_HEIGHT_MULTIPLIER;
     let box_x = (opts.page_width / 2.0) - (grid_width / 2.0);
     let box_y = opts.margin
         + word_bank_dimensions.box_height
         + (opts.page_height - opts.margin - word_bank_dimensions.box_height) / 2.0
-        - grid_height / 2.0;
+        - (grid_height + opts.margin + title_height) / 2.0;
     c.rectangle(box_x, box_y, grid_width, grid_height)?;
     c.stroke()?;
 
@@ -139,6 +142,8 @@ fn create_grid(
             )?;
         }
     }
+
+    c.center_text(opts.page_width / 2.0, box_y + grid_height + opts.margin - title_height / 2.0, FONT, opts.title_font_size, &opts.title)?;
 
     Ok(())
 }
@@ -195,6 +200,8 @@ mod test {
             page_width: 612.0,
             page_height: 792.0,
             margin: 40.0,
+            title: "Wordsearch".to_string(),
+            title_font_size: 20.0
         };
 
         super::generate_pdf(

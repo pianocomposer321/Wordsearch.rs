@@ -50,6 +50,14 @@ struct Args {
     /// Margin of generated PDF document (in points)
     #[arg(short, long, default_value = "36")]
     margin: f32,
+
+    /// Title to put at the top of the PDF Document
+    #[arg(short, long, default_value = "Wordsearch")]
+    title: String,
+
+    /// Font size for title
+    #[arg(short='f', long, default_value = "24")]
+    title_font_size: f32,
 }
 
 fn main() -> Result<(), MainError> {
@@ -89,6 +97,8 @@ fn main() -> Result<(), MainError> {
         page_width,
         page_height,
         margin: args.margin,
+        title: args.title,
+        title_font_size: args.title_font_size,
     };
 
     pdf::generate_pdf(&args.output, &words, &board, &pdf_opts)?;
