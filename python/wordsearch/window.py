@@ -2,6 +2,7 @@ from PySide6.QtCore import QObject, Signal
 from PySide6.QtGui import QFont, Qt
 from PySide6.QtWidgets import (
     QApplication,
+    QCheckBox,
     QFileDialog,
     QHBoxLayout,
     QLabel,
@@ -10,6 +11,7 @@ from PySide6.QtWidgets import (
     QMainWindow,
     QPlainTextEdit,
     QPushButton,
+    QSizePolicy,
     QStatusBar,
     QStyle,
     QVBoxLayout,
@@ -17,6 +19,7 @@ from PySide6.QtWidgets import (
 )
 
 from wordsearch.event_manager import AppState, EventManager
+from wordsearch.options_dialog import OptionsDialog
 
 BUTTON_WIDTH = 180
 
@@ -31,11 +34,13 @@ class MainWindow(QMainWindow):
     word_list: QPlainTextEdit
     output_pdf_line_edit: QLineEdit
     close_button: QPushButton
+    options_button: QPushButton
     generate_button: QPushButton
+    open_after_generating_cb: QCheckBox
     status_bar: QStatusBar
     status_message: QLabel
 
-    generate_signal = Signal(str)
+    generate_signal = Signal(str, bool)
 
     def __init__(self, app: QApplication, event_manager: EventManager):
         super().__init__()
@@ -71,17 +76,25 @@ class MainWindow(QMainWindow):
         self.close_button = QPushButton("Close")
         self.close_button.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_DialogCancelButton))
         self.close_button.setStatusTip("Quit application")
-        self.close_button.setFixedWidth(200)
         self.close_button.clicked.connect(self.app.quit)
-        _container.addWidget(self.close_button, alignment=Qt.AlignmentFlag.AlignLeft)
+        _container.addWidget(self.close_button)
+
+        self.options_button = QPushButton("PDF Options...")
+        self.options_button.setStatusTip("Advanced PDF options")
+        self.options_button.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_FileDialogContentsView))
+        self.options_button.clicked.connect(self._options_button_clicked)
+        _container.addWidget(self.options_button)
 
         self.generate_button = QPushButton("Generate")
         self.generate_button.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_DialogApplyButton))
         self.generate_button.setStatusTip("Generate PDF using listed words")
-        self.generate_button.setFixedWidth(200)
         self.generate_button.setEnabled(False)
         self.generate_button.clicked.connect(self._generate_button_clicked)
-        _container.addWidget(self.generate_button, alignment=Qt.AlignmentFlag.AlignRight)
+        _container.addWidget(self.generate_button)
+
+        self.open_after_generating_cb = QCheckBox("Open PDF document after generating")
+        self.open_after_generating_cb.setChecked(True)
+        self.layout.addWidget(self.open_after_generating_cb, alignment=Qt.AlignmentFlag.AlignRight)
 
         self.main_widget = QWidget()
         self.main_widget.setLayout(self.layout)
@@ -97,8 +110,8 @@ class MainWindow(QMainWindow):
 
     def _generate_button_clicked(self):
         filename, _ = QFileDialog.getSaveFileName(self, "Generate PDF", "", "PDF Files (*.pdf)")
-        print(filename)
-        self.generate_signal.emit(filename)
+        if filename:
+            self.generate_signal.emit(filename, self.open_after_generating_cb.isChecked())
 
     def _app_state_changed(self, new_state: AppState):
         match new_state:
@@ -114,3 +127,6 @@ class MainWindow(QMainWindow):
             self.generate_button.setEnabled(True)
         else:
             self.generate_button.setEnabled(False)
+
+    def _options_button_clicked(self):
+        OptionsDialog(self).exec()

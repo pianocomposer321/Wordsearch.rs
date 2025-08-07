@@ -45,12 +45,12 @@ class App:
         self.state = AppState.READY
         self.pdf = None
 
-        self.window.generate_signal.connect(lambda filename: asyncio.run(self.generate_board(filename)))
+        self.window.generate_signal.connect(lambda filename, open: asyncio.run(self.generate_board(filename, open)))
 
     def exec(self) -> int:
         return self.qapp.exec()
 
-    async def generate_board(self, filename: str):
+    async def generate_board(self, filename: str, open_pdf: bool):
         self.state = AppState.GENERATING
         self.event_manager.state_changed.emit(self.state)
 
@@ -58,3 +58,14 @@ class App:
 
         self.state = AppState.GENERATED
         self.event_manager.state_changed.emit(self.state)
+
+        if not open_pdf:
+            return
+
+        match sys.platform:
+            case "win32":
+                os.startfile(filename) # pyright: ignore
+            case "linux" | "linux2":
+                subprocess.run(["xdg-open", filename])
+            case "darwin":
+                subprocess.run(["open", filename])
