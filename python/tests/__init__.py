@@ -1,4 +1,4 @@
-from wordsearch.app import generate_board
+from wordsearch.app import generate_pdf
 from wordsearch.pdf import PDF
 import subprocess
 import asyncio
@@ -27,7 +27,7 @@ open
 
 
 async def _main():
-    board = await generate_board(WORDS)
+    board = await generate_pdf(WORDS)
 
     pdf = PDF(board, WORDS.split("\n"))
     with open("output.pdf", "wb") as output:

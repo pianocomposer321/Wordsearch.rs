@@ -45,7 +45,7 @@ fn calculate_word_bank_dimensions(words: &Vec<String>, opts: &PdfOptions) -> Wor
 
     let min_col_width = word_widths.max().unwrap() as f32 + word_bank_col_margin;
     let box_width = opts.page_width - opts.margin * 2.0;
-    let num_cols = ((box_width - word_bank_padding * 2.0) / min_col_width + 0.5).floor();
+    let num_cols = ((box_width - word_bank_padding * 2.0) / min_col_width).floor();
     let words_per_col = (words.len() as f32 / num_cols).ceil();
     let box_height =
         word_bank_padding * 2.0 + (word_bank_font_height + word_bank_row_margin) * words_per_col;
@@ -67,7 +67,7 @@ fn create_word_bank(c: &mut Canvas, words: &Vec<String>, opts: &PdfOptions) -> i
     let word_bank_row_margin = opts.word_bank_font_size * 0.3;
 
     let actual_col_width =
-        (bank_dimensions.box_width - word_bank_padding * 2.0) / bank_dimensions.num_cols;
+        (bank_dimensions.box_width - word_bank_padding) / bank_dimensions.num_cols;
     c.rectangle(
         opts.margin,
         opts.margin,
@@ -85,7 +85,8 @@ fn create_word_bank(c: &mut Canvas, words: &Vec<String>, opts: &PdfOptions) -> i
                 break;
             }
             c.left_text(
-                opts.margin + word_bank_padding + actual_col_width * column as f32,
+                // opts.margin + word_bank_padding + actual_col_width * column as f32,
+                opts.margin + word_bank_padding + bank_dimensions.box_width * 0.5 - actual_col_width * bank_dimensions.num_cols * 0.5 + actual_col_width * column as f32,
                 opts.margin + bank_dimensions.box_height
                     - word_bank_padding
                     - word_bank_font_height

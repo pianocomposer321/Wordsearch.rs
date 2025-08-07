@@ -23,15 +23,15 @@ struct Args {
     print: bool,
 
     /// Number of rows to include in the wordsearch grid
-    #[arg(short, long, default_value = "10")]
+    #[arg(short, long, default_value = "15")]
     rows: usize,
 
     /// Number of columns to include in the wordsearch grid
-    #[arg(short, long, default_value = "10")]
+    #[arg(short, long, default_value = "15")]
     cols: usize,
 
     /// Maximum iterations to try before aborting
-    #[arg(short, long, default_value = "1_000_000")]
+    #[arg(long, default_value = "1000000")]
     max_iterations: usize,
 
     /// Font size to use for the wordsearch grid
@@ -43,11 +43,11 @@ struct Args {
     word_bank_font_size: f32,
 
     /// Width of generated PDF document (in points)
-    #[arg(short, long, default_value = "612")]
+    #[arg(long, default_value = "612")]
     width: f32,
 
     /// Height of generated PDF document (in points)
-    #[arg(short, long, default_value = "792")]
+    #[arg(long, default_value = "792")]
     height: f32,
 
     /// Margin of generated PDF document (in points)

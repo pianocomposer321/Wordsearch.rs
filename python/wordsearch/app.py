@@ -54,7 +54,6 @@ class App:
         self.state = AppState.GENERATING
         self.event_manager.state_changed.emit(self.state)
 
-        print(filename)
         await generate_pdf(self.window.get_words(), filename)
 
         self.state = AppState.GENERATED
