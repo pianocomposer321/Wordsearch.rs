@@ -1,5 +1,5 @@
 import sys
-from .app import App
+from wordsearch import App
 
 def main():
     app = App(sys.argv)
