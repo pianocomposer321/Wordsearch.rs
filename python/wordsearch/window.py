@@ -19,7 +19,7 @@ from PySide6.QtWidgets import (
 )
 
 from wordsearch.event_manager import AppState, EventManager
-from wordsearch.options_dialog import OptionsDialog
+from wordsearch.options_dialog import OptionsDialog, PdfOptions, SettingPair
 
 BUTTON_WIDTH = 180
 
@@ -31,6 +31,7 @@ class MainWindow(QMainWindow):
     main_font: QFont
     bold_font: QFont
     layout: QLayout
+    title: QLineEdit
     word_list: QPlainTextEdit
     output_pdf_line_edit: QLineEdit
     close_button: QPushButton
@@ -40,7 +41,10 @@ class MainWindow(QMainWindow):
     status_bar: QStatusBar
     status_message: QLabel
 
+    pdf_options: PdfOptions
+
     generate_signal = Signal(str, bool)
+    pdf_options_changed = Signal(PdfOptions)
 
     def __init__(self, app: QApplication, event_manager: EventManager):
         super().__init__()
@@ -56,10 +60,19 @@ class MainWindow(QMainWindow):
         self.bold_font = QFont()
         self.bold_font.setBold(True)
 
+        self.pdf_options = PdfOptions()
+
         self.setWindowTitle("Wordsearch Generator")
         self.setGeometry(0, 0, 600, 400)
 
         self.layout = QVBoxLayout()
+
+        title_label = QLabel("Title:")
+        title_label.setFont(self.bold_font)
+        self.layout.addWidget(title_label)
+
+        self.title = QLineEdit(text="Wordsearch")
+        self.layout.addWidget(self.title)
 
         word_list_label = QLabel("Word List:")
         word_list_label.setFont(self.bold_font)
@@ -109,6 +122,8 @@ class MainWindow(QMainWindow):
         return self.word_list.toPlainText()
 
     def _generate_button_clicked(self):
+        self.pdf_options.title = self.title.text()
+        self.pdf_options_changed.emit(self.pdf_options)
         filename, _ = QFileDialog.getSaveFileName(self, "Generate PDF", "", "PDF Files (*.pdf)")
         if filename:
             self.generate_signal.emit(filename, self.open_after_generating_cb.isChecked())
@@ -129,4 +144,7 @@ class MainWindow(QMainWindow):
             self.generate_button.setEnabled(False)
 
     def _options_button_clicked(self):
-        OptionsDialog(self).exec()
+        dialog = OptionsDialog(self.pdf_options)
+        if dialog.exec():
+            self.pdf_options = dialog.pdf_options()
+            self.pdf_options_changed.emit(self.pdf_options)
