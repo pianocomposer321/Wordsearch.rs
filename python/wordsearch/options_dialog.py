@@ -140,7 +140,7 @@ class OptionsDialog(QDialog):
         self.grid_font_size = SettingPair("Grid", QSpinBox(maximum=100, value=current_options.grid_font_size))
         fonts_gb_layout.addWidget(self.grid_font_size)
 
-        self.word_bank_font_size = SettingPair("Word bank", QSpinBox(maximum=100, value=current_options.word_bank_font_size))
+        self.word_bank_font_size = SettingPair("Word bank", QSpinBox(maximum=100, value=12))
         fonts_gb_layout.addWidget(self.word_bank_font_size)
 
         fonts_gb.setLayout(fonts_gb_layout)
