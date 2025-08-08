@@ -136,7 +136,7 @@ fn create_grid(
         for col in 0..board[0].len() {
             c.center_text(
                 box_x + grid_padding + cell_size / 2.0 + cell_size * col as f32,
-                box_y + grid_padding + 1.0 + cell_padding / 2.0 + cell_size * row as f32,
+                box_y + grid_height - cell_size - cell_size * row as f32,
                 FONT,
                 opts.grid_font_size,
                 board[row][col].to_uppercase().to_string().as_str(),
