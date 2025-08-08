@@ -2,14 +2,30 @@
 
 A simple worsearch generator written in rust, with a frontend GUI in python.
 
-## Usage
+## Installation & Usage
 
-For the CLI generator, `cd rust` and `cargo run`, or `cargo install` and run the
-binary `wordsearch` on your path. See `wordsearch -h` for command line options
-controlling word list, font size, etc.
+#### Using the release (recommended):
 
-To run the GUI, just `cd python` and `./run.sh`. A recent (3.13 or later
-recommended) python installation is required.
+For the CLI, download wordsearch-linux or wordsearch.exe (for linux or windows
+respectively). This is a standalone executable binary, and it should just work
+as is.
+
+For the python UI, download wordsearch_ui-linux.tar.gz or
+wordsearch_ui-windows.zip. Extract the archive and run the wordsearch_ui
+executable. Alternatively, you can download the source code archive
+(wordsearch_ui-0.1.tar.gz) and run the code using a python interpreter `python3
+main.py`.
+
+#### Cloning the repo:
+
+```console
+$ git clone https://github.com/pianocomposer321/Wordsearch.rs
+$ cd python
+$ python3 main.py # run the python frontend ui
+$ cd ../rust
+$ cargo run -- words.txt -o output.pdf # run the rust CLI
+$ cargo install --path . # install the rust binary
+```
 
 ## Demo
 
