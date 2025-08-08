@@ -143,7 +143,7 @@ pub fn generate_board(
                     }
                     if succesful {
                         if word_ind + 1 == words.len() {
-                            return Ok(board);
+                            return Ok(board_copy);
                         }
 
                         directions_count[*direction as usize] += 1;
