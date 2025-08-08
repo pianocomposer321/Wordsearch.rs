@@ -10,3 +10,7 @@ controlling word list, font size, etc.
 
 To run the GUI, just `cd python` and `./run.sh`. A recent (3.13 or later
 recommended) python installation is required.
+
+## Demo
+
+[2025-08-08 13-01-53.mkv](2025-08-08 13-01-53.mkv)
